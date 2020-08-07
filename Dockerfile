@@ -22,6 +22,8 @@ RUN apt-get update && \
 	update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1 && \
 	update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1 && \
 	pip install -U pip && \
+
+
 	# Docker compose
     DOCKER_COMPOSE_URL=https://github.com$(curl -L https://github.com/docker/compose/releases/latest | grep -Eo 'href="[^"]+docker-compose-Linux-x86_64' | sed 's/^href="//' | head -1) && \
     curl -Lo /usr/local/bin/docker-compose $DOCKER_COMPOSE_URL && \
@@ -32,17 +34,12 @@ RUN apt-get update && \
     rm -rf /tmp/* /var/tmp/* && \
 	apt-get -y clean
 	
-VOLUME /var/lib/docker
+RUN python3 -m venv /opt/venv
 
-COPY dockerd-entrypoint.sh /usr/local/bin/
+# Install dependencies:
+COPY requirements.txt .
+RUN /opt/venv/bin/pip install -r requirements.txt
 
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh
-
-ENV PATH="/usr/local/bin:$PATH"
-
-ENV LANG="en_US.utf8"
-
-CMD ["python3"]
-
-ENTRYPOINT ["dockerd-entrypoint.sh"]
-
+# Run the application:
+#COPY myapp.py .
+#CMD . /opt/venv/bin/activate && exec python myapp.py
